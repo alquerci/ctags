@@ -1,0 +1,4 @@
+#! /bin/sh -eu
+
+docker-compose build
+docker-compose run --rm -u `id -u`:`id -g` app ctags-test

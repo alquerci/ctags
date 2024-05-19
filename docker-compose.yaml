@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .docker
+      args:
+        DISTRIBUTION_ID: ubuntu
+        DISTRIBUTION_CODENAME: focal
+    working_dir: /app
+    volumes:
+      - .:/app
