@@ -30,6 +30,13 @@ class ClassWithNamespacedClassProperty
     public SomeNamespacedClass $id;
 }
 
+class ClassWithNamespacedClassPipeClassTypeProperty
+{
+    use SomeTrait;
+
+    public SomeNamespacedClass|\stdClass $id;
+}
+
 trait SomeTrait
 {
 }
