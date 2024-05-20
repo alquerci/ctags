@@ -7,4 +7,6 @@ ClassWithClassTypeProperty	input.php	/^class ClassWithClassTypeProperty$/;"	c
 id	input.php	/^    public \\stdClass $id;$/;"	v	class:ClassWithClassTypeProperty	typeref:unknown:stdClass
 ClassWithNamespacedClassProperty	input.php	/^class ClassWithNamespacedClassProperty$/;"	c
 id	input.php	/^    public SomeNamespacedClass $id;$/;"	v	class:ClassWithNamespacedClassProperty	typeref:unknown:SomeNamespacedClass
+ClassWithNamespacedClassPipeClassTypeProperty	input.php	/^class ClassWithNamespacedClassPipeClassTypeProperty$/;"	c
+id	input.php	/^    public SomeNamespacedClass|\\stdClass $id;$/;"	v	class:ClassWithNamespacedClassPipeClassTypeProperty	typeref:unknown:SomeNamespacedClass|stdClass
 SomeTrait	input.php	/^trait SomeTrait$/;"	t

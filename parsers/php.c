@@ -1736,6 +1736,24 @@ static bool parseNamespace (tokenInfo *const token)
 	return true;
 }
 
+static bool parseClassUse (tokenInfo *const token)
+{
+	do
+	{
+		readToken (token);
+		if (token->type == TOKEN_OPEN_CURLY)
+		{
+			enterScope (token, NULL, -1);
+			return true;
+		}
+	}
+	while (token->type == TOKEN_IDENTIFIER ||
+		   token->type == TOKEN_BACKSLASH ||
+		   token->type == TOKEN_COMMA);
+
+	return (token->type == TOKEN_SEMICOLON);
+}
+
 static void enterScope (tokenInfo *const parentToken,
 						const vString *const extraScope,
 						const int parentKind)
@@ -1799,6 +1817,8 @@ static void enterScope (tokenInfo *const parentToken,
 						 * is also used to i.e. "import" traits into a class */
 						if (vStringLength (token->scope) == 0)
 							readNext = parseUse (token);
+						else if (parentKind == K_CLASS || parentKind == K_TRAIT)
+							readNext = parseClassUse (token);
 						break;
 
 					case KEYWORD_namespace:	readNext = parseNamespace (token);	break;
