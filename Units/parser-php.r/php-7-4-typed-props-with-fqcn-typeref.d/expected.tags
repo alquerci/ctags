@@ -1,0 +1,5 @@
+SomeUsedClass	input.php	/^use App\\SomeUsedClass;$/;"	a	typeref:unknown:App\\SomeUsedClass
+SomeClass	input.php	/^class SomeClass$/;"	c
+someInstance	input.php	/^    private SomeUsedClass $someInstance;$/;"	v	class:SomeClass	typeref:unknown:SomeUsedClass	access:private
+__construct	input.php	/^    public function __construct(SomeUsedClass $instance)$/;"	f	class:SomeClass	access:public
+getSomeInstance	input.php	/^    public function getSomeInstance(): SomeUsedClass$/;"	f	class:SomeClass	typeref:unknown:SomeUsedClass	access:public
