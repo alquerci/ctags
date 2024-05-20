@@ -293,6 +293,12 @@ static struct {
 	implType impl;
 } CurrentStatement;
 
+static struct {
+	tokenInfo *nameToken;
+	phpKind kind;
+	accessType access;
+} PendingVariable;
+
 /* Current namespace */
 static vString *CurrentNamesapce;
 /* Cache variable to build the tag's scope.  It has no real meaning outside
@@ -303,6 +309,12 @@ static vString *FullScope;
 static vString *ParentClass;
 
 static objPool *TokenPool = NULL;
+
+static void clearPendingVariable()
+{
+	deleteToken (PendingVariable.nameToken);
+	PendingVariable.nameToken = NULL;
+}
 
 static const char *phpScopeSeparatorFor (int kind, int upperScopeKind)
 {
@@ -1644,6 +1656,7 @@ static bool parseVariable (tokenInfo *const token, vString * typeName)
 	tokenInfo *name;
 	bool readNext = true;
 	accessType access = CurrentStatement.access;
+	clearPendingVariable();
 
 	name = newToken ();
 	copyToken (name, token, true);
@@ -1664,6 +1677,17 @@ static bool parseVariable (tokenInfo *const token, vString * typeName)
 			if (parseFunction (token, name))
 				readToken (token);
 			readNext = (bool) (token->type == TOKEN_SEMICOLON);
+		}
+		else if (token->type == TOKEN_KEYWORD &&
+			token->keyword == KEYWORD_new &&
+			PhpKinds[kind].enabled)
+		{
+			PendingVariable.nameToken = newToken ();
+			copyToken (PendingVariable.nameToken, name, true);
+			PendingVariable.kind = kind;
+			PendingVariable.access = access;
+
+			readNext = false;
 		}
 		else
 		{
@@ -1777,7 +1801,6 @@ static void enterScope (tokenInfo *const parentToken,
 		   token->type != TOKEN_CLOSE_CURLY)
 	{
 		bool readNext = true;
-		bool clearTypename = false;
 
 		switch (token->type)
 		{
@@ -1791,10 +1814,19 @@ static void enterScope (tokenInfo *const parentToken,
 					/* handle anonymous classes */
 					case KEYWORD_new:
 						readToken (token);
-						if (token->keyword != KEYWORD_class)
+						if (token->keyword != KEYWORD_class) {
+							if (NULL != PendingVariable.nameToken) {
+								makeTypedPhpTag(PendingVariable.nameToken, PendingVariable.kind, PendingVariable.access, token->string);
+							}
+
 							readNext = false;
+						}
 						else
 						{
+							if (NULL != PendingVariable.nameToken) {
+								makeSimplePhpTag (PendingVariable.nameToken, PendingVariable.kind, PendingVariable.access);
+							}
+
 							tokenInfo *name = newToken ();
 
 							copyToken (name, token, true);
@@ -1803,6 +1835,9 @@ static void enterScope (tokenInfo *const parentToken,
 							readNext = parseClassOrIface (token, K_CLASS, name);
 							deleteToken (name);
 						}
+
+						clearPendingVariable();
+
 						break;
 
 					case KEYWORD_class:		readNext = parseClassOrIface (token, K_CLASS, NULL);		break;
@@ -1848,14 +1883,11 @@ static void enterScope (tokenInfo *const parentToken,
 										  vStringIsEmpty(typeName)
 										  ? NULL
 										  : typeName);
-				clearTypename = true;
+				vStringClear (typeName);
 				break;
 
 			default: break;
 		}
-
-		if (clearTypename)
-			vStringClear (typeName);
 
 		if (readNext)
 			readToken (token);

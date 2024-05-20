@@ -1,2 +1,3 @@
 --sort=no
+--kinds-PHP=+l
 --fields=+{typeref}+{access}+{signature}

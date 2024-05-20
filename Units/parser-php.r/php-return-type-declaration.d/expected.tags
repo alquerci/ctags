@@ -7,7 +7,7 @@ at	input.php	/^    $at = $s->fourth();$/;"	v
 fifth	input.php	/^        public function fifth() : \\ A \\ T$/;"	f	class:SubTest	typeref:unknown:\\A\\T	access:public	signature:()
 first	input.php	/^        public function first(string $str) : Closure$/;"	f	class:Test	typeref:unknown:Closure	access:public	signature:(string $str)
 fourth	input.php	/^        public function fourth() : \\A\\T$/;"	f	class:SubTest	typeref:unknown:\\A\\T	access:public	signature:()
-s	input.php	/^    $s = new SubTest;$/;"	v
+s	input.php	/^    $s = new SubTest;$/;"	v	typeref:unknown:SubTest
 second	input.php	/^        public function second() : self$/;"	f	class:Test	typeref:class:Test	access:public	signature:()
 seventh	input.php	/^        public function seventh() : parent$/;"	f	class:SubAT	typeref:class:\\A\\T	access:public	signature:()
 sixth	input.php	/^        public function &sixth(\\A\\T &$t) : \\A\\T$/;"	f	class:SubTest	typeref:unknown:\\A\\T	access:public	signature:(\\A\\T& $t)
