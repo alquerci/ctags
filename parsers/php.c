@@ -1389,6 +1389,7 @@ static bool parseFunction (tokenInfo *const token, const tokenInfo *name)
 
 		arglist = vStringNew ();
 		vStringPut (arglist, '(');
+		vString *typeName = vStringNew ();
 		do
 		{
 			readToken (token);
@@ -1443,9 +1444,36 @@ static bool parseFunction (tokenInfo *const token, const tokenInfo *name)
 							vStringPut (arglist, ' ');
 							break;
 					}
-					if (token->type == TOKEN_VARIABLE)
+
+					if (token->type == TOKEN_QMARK) {
+						vStringClear (typeName);
+						vStringPut (typeName, '?');
+					}
+
+					if (token->type == TOKEN_IDENTIFIER) {
+						vStringCat (typeName, token->string);
+					}
+
+					if (token->type == TOKEN_VARIABLE) {
 						vStringPut (arglist, '$');
+
+						if (PhpKinds[K_LOCAL_VARIABLE].enabled) {
+							tokenInfo* variableToken = newToken ();
+							copyToken (variableToken, token, true);
+							vStringCopy (variableToken->scope, name->scope);
+							variableToken->parentKind = K_FUNCTION;
+							addToScope (variableToken, name->string, name->parentKind);
+
+							makeTypedPhpTag(variableToken, K_LOCAL_VARIABLE, ACCESS_UNDEFINED, vStringIsEmpty(typeName) ? NULL : typeName);
+
+							deleteToken (variableToken);
+						}
+
+						vStringClear (typeName);
+					}
+
 					vStringCat (arglist, token->string);
+
 					break;
 				}
 
@@ -1454,6 +1482,7 @@ static bool parseFunction (tokenInfo *const token, const tokenInfo *name)
 		}
 		while (token->type != TOKEN_EOF && depth > 0);
 
+		vStringDelete (typeName);
 		readToken (token); /* normally it's an open brace or "use" keyword */
 	}
 
