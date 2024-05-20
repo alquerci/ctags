@@ -310,12 +310,6 @@ static vString *ParentClass;
 
 static objPool *TokenPool = NULL;
 
-static void clearPendingVariable()
-{
-	deleteToken (PendingVariable.nameToken);
-	PendingVariable.nameToken = NULL;
-}
-
 static const char *phpScopeSeparatorFor (int kind, int upperScopeKind)
 {
 	return scopeSeparatorFor (getInputLanguage(), kind, upperScopeKind);
@@ -611,6 +605,20 @@ static void printToken (const tokenInfo *const token)
 	}
 }
 #endif
+
+static void clearPendingVariable()
+{
+	deleteToken (PendingVariable.nameToken);
+	PendingVariable.nameToken = NULL;
+}
+
+static void makePendingVariable(tokenInfo* name, phpKind kind, accessType access)
+{
+	PendingVariable.nameToken = newToken ();
+	copyToken (PendingVariable.nameToken, name, true);
+	PendingVariable.kind = kind;
+	PendingVariable.access = access;
+}
 
 static void addToScope (tokenInfo *const token, const vString *const extra,
 			int kindOfUpperScope)
@@ -1682,11 +1690,7 @@ static bool parseVariable (tokenInfo *const token, vString * typeName)
 			token->keyword == KEYWORD_new &&
 			PhpKinds[kind].enabled)
 		{
-			PendingVariable.nameToken = newToken ();
-			copyToken (PendingVariable.nameToken, name, true);
-			PendingVariable.kind = kind;
-			PendingVariable.access = access;
-
+			makePendingVariable(name, kind, access);
 			readNext = false;
 		}
 		else
