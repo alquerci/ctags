@@ -1415,7 +1415,21 @@ static bool parseFunction (tokenInfo *const token, const tokenInfo *name)
 				case TOKEN_OPEN_SQUARE:		vStringPut (arglist, '[');		break;
 				case TOKEN_PERIOD:			vStringPut (arglist, '.');		break;
 				case TOKEN_SEMICOLON:		vStringPut (arglist, ';');		break;
-				case TOKEN_BACKSLASH:		vStringPut (arglist, '\\');		break;
+				case TOKEN_BACKSLASH:
+				{
+					vStringPut (arglist, '\\');
+					vStringPut (typeName, '\\');
+					break;
+				}
+				case TOKEN_QMARK:
+				{
+					vStringPut (arglist, '?');
+
+					vStringClear (typeName);
+					vStringPut (typeName, '?');
+
+					break;
+				}
 				case TOKEN_STRING:
 				{
 					vStringPut (arglist, '\'');
@@ -1436,6 +1450,7 @@ static bool parseFunction (tokenInfo *const token, const tokenInfo *name)
 						case '(':
 						case '[':
 						case '.':
+						case '?':
 						case '\\':
 							/* no need for a space between those and the identifier */
 							break;
@@ -1443,11 +1458,6 @@ static bool parseFunction (tokenInfo *const token, const tokenInfo *name)
 						default:
 							vStringPut (arglist, ' ');
 							break;
-					}
-
-					if (token->type == TOKEN_QMARK) {
-						vStringClear (typeName);
-						vStringPut (typeName, '?');
 					}
 
 					if (token->type == TOKEN_IDENTIFIER) {

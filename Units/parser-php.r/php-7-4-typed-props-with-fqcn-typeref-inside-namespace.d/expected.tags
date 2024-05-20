@@ -3,7 +3,7 @@ SomeUsedClass	input.php	/^use SomeNamespace\\SomeUsedClass;$/;"	a	namespace:App	
 SomeClass	input.php	/^class SomeClass$/;"	c	namespace:App
 someInstance	input.php	/^    private ?SomeUsedClass $someInstance;$/;"	v	class:App\\SomeClass	typeref:unknown:?SomeUsedClass	access:private
 instance	input.php	/^    public function __construct(?SomeUsedClass $instance)$/;"	l	function:App\\SomeClass::__construct	typeref:unknown:?SomeUsedClass
-__construct	input.php	/^    public function __construct(?SomeUsedClass $instance)$/;"	f	class:App\\SomeClass	access:public	signature:(SomeUsedClass $instance)
-getSomeInstance	input.php	/^    public function getSomeInstance(): SomeUsedClass$/;"	f	class:App\\SomeClass	typeref:unknown:?SomeUsedClass	access:public	signature:()
+__construct	input.php	/^    public function __construct(?SomeUsedClass $instance)$/;"	f	class:App\\SomeClass	access:public	signature:(?SomeUsedClass $instance)
+getSomeInstance	input.php	/^    public function getSomeInstance(): ?SomeUsedClass$/;"	f	class:App\\SomeClass	typeref:unknown:?SomeUsedClass	access:public	signature:()
 makeSomeInstance	input.php	/^    public function makeSomeInstance(): SomeUsedClass$/;"	f	class:App\\SomeClass	typeref:unknown:SomeUsedClass	access:public	signature:()
 instance	input.php	/^        $instance = new SomeUsedClass();$/;"	l	function:App\\SomeClass::makeSomeInstance	typeref:unknown:SomeUsedClass
