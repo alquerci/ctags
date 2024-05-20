@@ -1912,14 +1912,16 @@ static void enterScope (tokenInfo *const parentToken,
 				}
 				break;
 
+			case TOKEN_BACKSLASH:
+				vStringPut (typeName, '\\');
+				break;
+
 			case TOKEN_QMARK:
 				vStringClear (typeName);
 				vStringPut (typeName, '?');
-				readNext = true;
 				break;
 			case TOKEN_IDENTIFIER:
 				vStringCat (typeName, token->string);
-				readNext = true;
 				break;
 			case TOKEN_VARIABLE:
 				readNext = parseVariable (token,
