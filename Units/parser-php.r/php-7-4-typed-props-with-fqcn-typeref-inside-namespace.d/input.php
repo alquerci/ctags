@@ -6,14 +6,14 @@ use SomeNamespace\SomeUsedClass;
 
 class SomeClass
 {
-    private SomeUsedClass $someInstance;
+    private ?SomeUsedClass $someInstance;
 
-    public function __construct(SomeUsedClass $instance)
+    public function __construct(?SomeUsedClass $instance)
     {
         $this->someInstance = $instance;
     }
 
-    public function getSomeInstance(): SomeUsedClass
+    public function getSomeInstance(): ?SomeUsedClass
     {
         return $this->someInstance;
     }
