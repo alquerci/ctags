@@ -13,9 +13,9 @@ class SomeClass
         $this->someInstance = $instance;
     }
 
-    public function getSomeInstance(): ?SomeUsedClass
+    public function getSomeInstance($instance = null): ?SomeUsedClass
     {
-        return $this->someInstance;
+        return $instance ?? $this->someInstance;
     }
 
     public function makeSomeInstance(): SomeUsedClass
