@@ -1,0 +1,23 @@
+#! /bin/sh -eux
+
+OS="${DISTRIBUTION_ID}-${DISTRIBUTION_CODENAME}"
+
+export CC=gcc
+export BUILDDIR="_build/${OS}-${CC}"
+
+./autogen.sh
+
+${CC} --version
+make --version
+
+mkdir -p -- "${BUILDDIR}"
+cd ${BUILDDIR}
+
+../../configure \
+    --enable-debugging \
+    --enable-iconv \
+    --enable-coverage-gcov \
+;
+
+make -j`nproc`
+./ctags --list-features

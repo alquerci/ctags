@@ -293,6 +293,12 @@ static struct {
 	implType impl;
 } CurrentStatement;
 
+static struct {
+	tokenInfo *nameToken;
+	phpKind kind;
+	accessType access;
+} PendingVariable;
+
 /* Current namespace */
 static vString *CurrentNamesapce;
 /* Cache variable to build the tag's scope.  It has no real meaning outside
@@ -599,6 +605,20 @@ static void printToken (const tokenInfo *const token)
 	}
 }
 #endif
+
+static void clearPendingVariable()
+{
+	deleteToken (PendingVariable.nameToken);
+	PendingVariable.nameToken = NULL;
+}
+
+static void makePendingVariable(tokenInfo* name, phpKind kind, accessType access)
+{
+	PendingVariable.nameToken = newToken ();
+	copyToken (PendingVariable.nameToken, name, true);
+	PendingVariable.kind = kind;
+	PendingVariable.access = access;
+}
 
 static void addToScope (tokenInfo *const token, const vString *const extra,
 			int kindOfUpperScope)
@@ -1369,6 +1389,7 @@ static bool parseFunction (tokenInfo *const token, const tokenInfo *name)
 
 		arglist = vStringNew ();
 		vStringPut (arglist, '(');
+		vString *typeName = vStringNew ();
 		do
 		{
 			readToken (token);
@@ -1394,7 +1415,21 @@ static bool parseFunction (tokenInfo *const token, const tokenInfo *name)
 				case TOKEN_OPEN_SQUARE:		vStringPut (arglist, '[');		break;
 				case TOKEN_PERIOD:			vStringPut (arglist, '.');		break;
 				case TOKEN_SEMICOLON:		vStringPut (arglist, ';');		break;
-				case TOKEN_BACKSLASH:		vStringPut (arglist, '\\');		break;
+				case TOKEN_BACKSLASH:
+				{
+					vStringPut (arglist, '\\');
+					vStringPut (typeName, '\\');
+					break;
+				}
+				case TOKEN_QMARK:
+				{
+					vStringPut (arglist, '?');
+
+					vStringClear (typeName);
+					vStringPut (typeName, '?');
+
+					break;
+				}
 				case TOKEN_STRING:
 				{
 					vStringPut (arglist, '\'');
@@ -1415,6 +1450,7 @@ static bool parseFunction (tokenInfo *const token, const tokenInfo *name)
 						case '(':
 						case '[':
 						case '.':
+						case '?':
 						case '\\':
 							/* no need for a space between those and the identifier */
 							break;
@@ -1423,9 +1459,31 @@ static bool parseFunction (tokenInfo *const token, const tokenInfo *name)
 							vStringPut (arglist, ' ');
 							break;
 					}
-					if (token->type == TOKEN_VARIABLE)
+
+					if (token->type == TOKEN_IDENTIFIER) {
+						vStringCat (typeName, token->string);
+					}
+
+					if (token->type == TOKEN_VARIABLE) {
 						vStringPut (arglist, '$');
+
+						if (PhpKinds[K_LOCAL_VARIABLE].enabled) {
+							tokenInfo* variableToken = newToken ();
+							copyToken (variableToken, token, true);
+							vStringCopy (variableToken->scope, name->scope);
+							variableToken->parentKind = K_FUNCTION;
+							addToScope (variableToken, name->string, name->parentKind);
+
+							makeTypedPhpTag(variableToken, K_LOCAL_VARIABLE, ACCESS_UNDEFINED, vStringIsEmpty(typeName) ? NULL : typeName);
+
+							deleteToken (variableToken);
+						}
+
+						vStringClear (typeName);
+					}
+
 					vStringCat (arglist, token->string);
+
 					break;
 				}
 
@@ -1434,6 +1492,7 @@ static bool parseFunction (tokenInfo *const token, const tokenInfo *name)
 		}
 		while (token->type != TOKEN_EOF && depth > 0);
 
+		vStringDelete (typeName);
 		readToken (token); /* normally it's an open brace or "use" keyword */
 	}
 
@@ -1644,6 +1703,7 @@ static bool parseVariable (tokenInfo *const token, vString * typeName)
 	tokenInfo *name;
 	bool readNext = true;
 	accessType access = CurrentStatement.access;
+	clearPendingVariable();
 
 	name = newToken ();
 	copyToken (name, token, true);
@@ -1664,6 +1724,13 @@ static bool parseVariable (tokenInfo *const token, vString * typeName)
 			if (parseFunction (token, name))
 				readToken (token);
 			readNext = (bool) (token->type == TOKEN_SEMICOLON);
+		}
+		else if (token->type == TOKEN_KEYWORD &&
+			token->keyword == KEYWORD_new &&
+			PhpKinds[kind].enabled)
+		{
+			makePendingVariable(name, kind, access);
+			readNext = false;
 		}
 		else
 		{
@@ -1736,6 +1803,24 @@ static bool parseNamespace (tokenInfo *const token)
 	return true;
 }
 
+static bool parseClassUse (tokenInfo *const token)
+{
+	do
+	{
+		readToken (token);
+		if (token->type == TOKEN_OPEN_CURLY)
+		{
+			enterScope (token, NULL, -1);
+			return true;
+		}
+	}
+	while (token->type == TOKEN_IDENTIFIER ||
+		   token->type == TOKEN_BACKSLASH ||
+		   token->type == TOKEN_COMMA);
+
+	return (token->type == TOKEN_SEMICOLON);
+}
+
 static void enterScope (tokenInfo *const parentToken,
 						const vString *const extraScope,
 						const int parentKind)
@@ -1772,10 +1857,19 @@ static void enterScope (tokenInfo *const parentToken,
 					/* handle anonymous classes */
 					case KEYWORD_new:
 						readToken (token);
-						if (token->keyword != KEYWORD_class)
+						if (token->keyword != KEYWORD_class) {
+							if (NULL != PendingVariable.nameToken) {
+								makeTypedPhpTag(PendingVariable.nameToken, PendingVariable.kind, PendingVariable.access, token->string);
+							}
+
 							readNext = false;
+						}
 						else
 						{
+							if (NULL != PendingVariable.nameToken) {
+								makeSimplePhpTag (PendingVariable.nameToken, PendingVariable.kind, PendingVariable.access);
+							}
+
 							tokenInfo *name = newToken ();
 
 							copyToken (name, token, true);
@@ -1784,6 +1878,9 @@ static void enterScope (tokenInfo *const parentToken,
 							readNext = parseClassOrIface (token, K_CLASS, name);
 							deleteToken (name);
 						}
+
+						clearPendingVariable();
+
 						break;
 
 					case KEYWORD_class:		readNext = parseClassOrIface (token, K_CLASS, NULL);		break;
@@ -1798,6 +1895,8 @@ static void enterScope (tokenInfo *const parentToken,
 						 * is also used to i.e. "import" traits into a class */
 						if (vStringLength (token->scope) == 0)
 							readNext = parseUse (token);
+						else if (parentKind == K_CLASS || parentKind == K_TRAIT)
+							readNext = parseClassUse (token);
 						break;
 
 					case KEYWORD_namespace:	readNext = parseNamespace (token);	break;
@@ -1813,14 +1912,16 @@ static void enterScope (tokenInfo *const parentToken,
 				}
 				break;
 
+			case TOKEN_BACKSLASH:
+				vStringPut (typeName, '\\');
+				break;
+
 			case TOKEN_QMARK:
 				vStringClear (typeName);
 				vStringPut (typeName, '?');
-				readNext = true;
 				break;
 			case TOKEN_IDENTIFIER:
 				vStringCat (typeName, token->string);
-				readNext = true;
 				break;
 			case TOKEN_VARIABLE:
 				readNext = parseVariable (token,

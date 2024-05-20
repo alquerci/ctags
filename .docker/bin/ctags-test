@@ -1,0 +1,15 @@
+#! /bin/sh -eux
+
+OS="${DISTRIBUTION_ID}-${DISTRIBUTION_CODENAME}"
+
+export CC=gcc
+export BUILDDIR="_build/${OS}-${CC}"
+
+if test ! -d "${BUILDDIR}"; then
+    ctags-build
+else :; fi
+
+cd "${BUILDDIR}"
+
+export CI=true
+make -j`nproc` check

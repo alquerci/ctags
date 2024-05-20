@@ -4,7 +4,7 @@ Cls1	input.php	/^class Cls1 extends Acls1 {$/;"	c	inherits:Acls1
 WIDTH	input.php	/^define('WIDTH', 36 * ((4 + 2) \/ 3));$/;"	d
 __construct	input.php	/^  function __construct($a, $b) {$/;"	f	class:AnonymousClass0314f3c80100
 __construct	input.php	/^  public function __construct ($args = null) {$/;"	f	class:Acls1
-cls1	input.php	/^$cls1 = new Cls1();$/;"	v
+cls1	input.php	/^$cls1 = new Cls1();$/;"	v	typeref:unknown:Cls1
 func1	input.php	/^function func1($n, $c) {$/;"	f
 func2	input.php	/^function func2($a, $b = ((4 + 1) * 2 - 4 \/ 2)) {$/;"	f
 func3	input.php	/^function func3($/;"	f	typeref:unknown:string

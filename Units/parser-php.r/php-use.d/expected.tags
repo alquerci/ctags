@@ -26,8 +26,8 @@ NSIface	input.php	/^  use NS\\Iface as NSIface, NS\\Cls as NSCls;$/;"	a	namespac
 NameSpaceTreePointO	input.php	/^  use NS2\\{NS30 as NameSpaceTreePointO, NS31\\Cls4 as ClassFour};$/;"	a	typeref:unknown:NS2\\NS30
 NameSpaceTreePointZero	input.php	/^  use NS2\\{NS30 as NameSpaceTreePointZero,};$/;"	a	typeref:unknown:NS2\\NS30
 SomeAliasedNS	input.php	/^  use NS as SomeAliasedNS;$/;"	a	typeref:unknown:NS
-cls	input.php	/^  $cls = new Cls2;$/;"	v
-cls	input.php	/^  $cls = new Cls;$/;"	v
+cls	input.php	/^  $cls = new Cls2;$/;"	v	typeref:unknown:Cls2
+cls	input.php	/^  $cls = new Cls;$/;"	v	typeref:unknown:Cls
 foo	input.php	/^    private $foo = FOO;$/;"	v	class:NS2\\Cls
 hello	input.php	/^    public function hello() {$/;"	f	class:NS2\\Cls
 hello	input.php	/^    public function hello() {$/;"	f	class:NS\\Cls
